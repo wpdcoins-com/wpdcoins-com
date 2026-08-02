@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="./logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WPD CHAIN - World Peace Development Ecosystem</title>
+    <script src="./telegram-web-app.js"></script>
+    <script type="module" crossorigin src="./assets/index-B02C1K1i.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CxikZFvQ.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- #region agent log -->
+    <script>
+    (function () {
+      var ENDPOINT = 'http://127.0.0.1:7942/ingest/0471cf81-94f6-481e-bce7-d2eec5bc2d3a';
+      var SESSION = '66957d';
+      function send(hypothesisId, location, message, data) {
+        fetch(ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': SESSION },
+          body: JSON.stringify({
+            sessionId: SESSION,
+            runId: 'pre-fix',
+            hypothesisId: hypothesisId,
+            location: location,
+            message: message,
+            data: data || {},
+            timestamp: Date.now()
+          })
+        }).catch(function () {});
+      }
+      send('A', 'wpdcoins-site/index.html:boot', 'page boot', {
+        protocol: location.protocol,
+        href: location.href,
+        readyState: document.readyState
+      });
+      window.addEventListener('error', function (e) {
+        send('E', 'wpdcoins-site/index.html:error', 'window error', {
+          message: String(e.message || ''),
+          filename: String(e.filename || ''),
+          lineno: e.lineno || 0,
+          colno: e.colno || 0
+        });
+      });
+      window.addEventListener('unhandledrejection', function (e) {
+        send('E', 'wpdcoins-site/index.html:rejection', 'unhandled rejection', {
+          reason: String((e.reason && (e.reason.message || e.reason)) || e.reason)
+        });
+      });
+      setTimeout(function () {
+        var root = document.getElementById('root');
+        var videos = Array.prototype.map.call(document.querySelectorAll('video'), function (v) {
+          return {
+            src: v.currentSrc || v.src || '',
+            networkState: v.networkState,
+            readyState: v.readyState,
+            errorCode: v.error ? v.error.code : null
+          };
+        });
+        var brokenImgs = Array.prototype.filter.call(document.querySelectorAll('img'), function (i) {
+          return !i.complete || i.naturalWidth === 0;
+        }).map(function (i) { return i.src; }).slice(0, 20);
+        var moduleEntries = (performance.getEntriesByType('resource') || []).filter(function (r) {
+          return /assets\/index-.*\.js/.test(r.name);
+        }).map(function (r) {
+          return { name: r.name, duration: r.duration, transferSize: r.transferSize, responseStatus: r.responseStatus };
+        });
+        send('A', 'wpdcoins-site/index.html:mount-check', 'mount and asset check', {
+          protocol: location.protocol,
+          rootChildCount: root ? root.children.length : -1,
+          rootEmpty: !!(root && root.children.length === 0),
+          videoCount: videos.length,
+          videos: videos,
+          brokenImgCount: brokenImgs.length,
+          brokenImgs: brokenImgs,
+          moduleEntries: moduleEntries
+        });
+        send('B', 'wpdcoins-site/index.html:video-check', 'video availability', {
+          videos: videos,
+          missingVideoLikely: videos.some(function (v) { return !v.src || v.networkState === 3 || v.errorCode; })
+        });
+      }, 2500);
+    })();
+    </script>
+    <!-- #endregion -->
+  </body>
+</html>
